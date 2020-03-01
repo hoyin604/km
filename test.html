@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<script src="https://code.jquery.com/jquery-3.4.0.min.js" integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+<script src="Buffer.js" charset="utf-8"></script>
+</head>
+<body>
+<script>
+
+var test_list = [
+  {x:10, y:10, t:1}
+  , {x:11, y:18, t:5}
+  , {x:13, y:10, t:30}
+  , {x:12, y:-1, t:32}
+  , {x:7, y:-4, t:33}
+];
+
+var posBuffer = new Buffer(3);
+var posInfoBuffer = new Buffer(10);
+posBuffer.pushItem({x:0, y:0, t:0, dx:0, dy:0, dt:0, dist:0, speed:0, dir_rad:0});
+var bufferAddPos = function(x, y, t) {
+  posBuffer.lastItem(function(last_reocrd) {
+    var dx = x - last_reocrd.x;
+    var dy = y - last_reocrd.y;
+    var dt = t - last_reocrd.t;
+    var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    var speed = dist / dt;
+    var dir_rad = Math.atan2(dy, dx);
+    var new_record = {};
+    new_record["x"] = x;
+    new_record["y"] = y;
+    new_record["t"] = t;
+    new_record["dx"] = dx;
+    new_record["dy"] = dy;
+    new_record["dt"] = dt;
+    new_record["dist"] = dist;
+    new_record["speed"] = speed;
+    new_record["dir_rad"] = dir_rad;
+    var dist_total = 0;
+    var dt_total = 0;
+    console.log(new_record);
+    posBuffer.pushItem(new_record, function(re, c) {
+      dist_total = dist_total + re.dist;
+      dt_total = dt_total + re.dt;
+    });
+    var infoItem = {"dist_total":dist_total, "dist_avg":(dist_total / dt_total)};
+    posInfoBuffer.pushItem(infoItem);
+  });
+}
+for (var i = 0; i < test_list.length; i++) {
+  var test_record = test_list[i];
+  bufferAddPos(test_record.x, test_record.y, test_record.t);
+}
+
+console.log(posBuffer.arr);
+console.log(posInfoBuffer.arr);
+
+</script>
+</body>
+</html>
